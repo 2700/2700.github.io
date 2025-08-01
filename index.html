@@ -1,0 +1,300 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Slot Machine</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      text-align: center;
+      background: #111;
+      color: #fff;
+      margin: 0;
+      padding: 20px;
+    }
+
+    .slot-machine {
+      margin: 20px auto;
+      width: 380px;
+      max-width: 95vw;
+      padding: 20px;
+      border: 5px solid #444;
+      border-radius: 12px;
+      background-color: #222;
+      transition: border 0.3s;
+    }
+
+    .iridescent-machine {
+      animation: iridescent-border 1.5s linear infinite;
+    }
+
+    .reels {
+      display: flex;
+      justify-content: space-around;
+      font-size: 50px;
+      margin-top: 40px;
+    }
+
+    .reel {
+      width: 80px;
+      height: 80px;
+      border: 4px solid #555;
+      background: #1c1c1c;
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: border 0.3s;
+    }
+
+    .reel.iridescent-reel {
+      animation: iridescent-border 1s linear infinite;
+    }
+
+    @keyframes iridescent-border {
+      0% { border-color: red; }
+      16% { border-color: orange; }
+      33% { border-color: yellow; }
+      50% { border-color: lime; }
+      66% { border-color: cyan; }
+      83% { border-color: blue; }
+      100% { border-color: violet; }
+    }
+
+    button {
+      padding: 16px 28px;
+      font-size: 20px;
+      background-color: #28a745;
+      border: none;
+      color: white;
+      border-radius: 10px;
+      cursor: pointer;
+      margin: 40px 0;
+      transition: background-color 0.1s, transform 0.1s;
+      touch-action: manipulation;
+      min-width: 200px;
+    }
+
+    button:active {
+      background-color: #1e7c34;
+      transform: scale(0.98);
+    }
+
+    button:disabled {
+      background-color: #555;
+      cursor: not-allowed;
+    }
+
+    .balance {
+      font-size: 20px;
+      margin: 10px 0;
+    }
+
+    .balance-numbers {
+      display: inline-block;
+      transition: transform 0.15s ease;
+    }
+
+    .balance-numbers.pulse {
+      animation: pulse-scale 0.3s ease;
+    }
+
+    @keyframes pulse-scale {
+      0% { transform: scale(1); }
+      50% { transform: scale(1.3); }
+      100% { transform: scale(1); }
+    }
+
+    .payoff-board {
+      text-align: left;
+      font-size: 16px;
+      background: #1c1c1c;
+      padding: 10px 15px;
+      border-radius: 10px;
+      border: 2px solid #333;
+      margin-top: 15px;
+    }
+
+    .payoff-board h3 {
+      color: #ffcc00;
+      margin: 0 0 8px 0;
+      font-size: 18px;
+    }
+
+    .payoff-board table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+
+    .payoff-board td {
+      padding: 4px;
+      vertical-align: middle;
+    }
+
+    .payoff-board .symbols {
+      width: 70%;
+    }
+
+    .payoff-board .amount {
+      text-align: right;
+      width: 30%;
+      color: gray;
+    }
+  </style>
+</head>
+<body>
+
+<div class="slot-machine" id="slotBox">
+  <h1>👑 Slotty King 👑</h1>
+  <div class="balance">
+    Balance: <span class="balance-numbers" id="balanceNumbers">100</span> credits
+  </div>
+  <div class="reels">
+    <div class="reel" id="reel1">🍒</div>
+    <div class="reel" id="reel2">🔔</div>
+    <div class="reel" id="reel3">🍉</div>
+  </div>
+  <button id="spinBtn" onclick="spin()">Spin (10 credits)</button>
+
+  <div class="payoff-board">
+    <h3>Payoff Board</h3>
+    <table>
+      <tr><td class="symbols">🍒</td><td class="amount">10</td></tr>
+      <tr><td class="symbols">🍒 🍒</td><td class="amount">20</td></tr>
+      <tr><td class="symbols">🍒 🍒 🍒</td><td class="amount">40</td></tr>
+      <tr><td class="symbols">🔔 🔔</td><td class="amount">20</td></tr>
+      <tr><td class="symbols">🔔 🔔 🔔</td><td class="amount">40</td></tr>
+      <tr><td class="symbols">🍉 🍉</td><td class="amount">40</td></tr>
+      <tr><td class="symbols">🍉 🍉 🍉</td><td class="amount">50</td></tr>
+      <tr><td class="symbols">💎 💎 💎</td><td class="amount">70</td></tr>
+    </table>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+
+<script>
+  const symbols = ['🍒', '🔔', '🍉', '💎'];
+  let balance = 100;
+
+  const balanceNumbers = document.getElementById('balanceNumbers');
+  const spinBtn = document.getElementById('spinBtn');
+  const slotBox = document.getElementById('slotBox');
+  const reelElems = [
+    document.getElementById('reel1'),
+    document.getElementById('reel2'),
+    document.getElementById('reel3')
+  ];
+
+  function getRandomSymbol() {
+    return symbols[Math.floor(Math.random() * symbols.length)];
+  }
+
+  function updateBalanceDisplay() {
+    balanceNumbers.textContent = balance;
+    spinBtn.disabled = balance < 10;
+  }
+
+  function resetIridescence() {
+    slotBox.classList.remove('iridescent-machine');
+    reelElems.forEach(reel => reel.classList.remove('iridescent-reel'));
+  }
+
+  function calculatePayout([r1, r2, r3]) {
+    if (r1 === '💎' && r2 === '💎' && r3 === '💎')
+      return { payout: 70, jackpot: true, winningIndexes: [0, 1, 2] };
+
+    if (r1 === '🍒' && r2 === '🍒' && r3 === '🍒') return { payout: 40, winningIndexes: [0, 1, 2] };
+    if (r1 === '🍒' && r2 === '🍒') return { payout: 20, winningIndexes: [0, 1] };
+    if (r1 === '🍒') return { payout: 10, winningIndexes: [0] };
+
+    if (r1 === '🔔' && r2 === '🔔' && r3 === '🔔') return { payout: 40, winningIndexes: [0, 1, 2] };
+    if (r1 === '🔔' && r2 === '🔔') return { payout: 20, winningIndexes: [0, 1] };
+
+    if (r1 === '🍉' && r2 === '🍉' && r3 === '🍉') return { payout: 50, winningIndexes: [0, 1, 2] };
+    if (r1 === '🍉' && r2 === '🍉') return { payout: 40, winningIndexes: [0, 1] };
+
+    return { payout: 0 };
+  }
+
+  function pulseBalanceNumber() {
+    balanceNumbers.classList.remove('pulse');
+    void balanceNumbers.offsetWidth;
+    balanceNumbers.classList.add('pulse');
+  }
+
+  function animateBalanceIncrease(currentBalance, payout, callback) {
+    if (payout <= 0) {
+      if (callback) callback();
+      return;
+    }
+    let displayedBalance = currentBalance;
+    const increments = Math.floor(payout / 10);
+    let count = 0;
+
+    const interval = setInterval(() => {
+      count++;
+      displayedBalance += 10;
+      balanceNumbers.textContent = displayedBalance;
+      pulseBalanceNumber();
+
+      if (count >= increments) {
+        clearInterval(interval);
+        balance = displayedBalance;
+        updateBalanceDisplay();
+        if (callback) callback();
+      }
+    }, 200);
+  }
+
+  function spin() {
+    if (balance < 10) return;
+
+    balance -= 10;
+    updateBalanceDisplay();
+    resetIridescence();
+
+    let finalSymbols = [];
+
+    reelElems.forEach((reel, index) => {
+      let spinInterval = setInterval(() => {
+        reel.textContent = getRandomSymbol();
+      }, 100);
+
+      setTimeout(() => {
+        clearInterval(spinInterval);
+        const final = getRandomSymbol();
+        reel.textContent = final;
+        finalSymbols.push(final);
+
+        if (finalSymbols.length === 3) {
+          const result = calculatePayout(finalSymbols);
+
+          if (result.payout > 0) {
+            if (result.jackpot) {
+              slotBox.classList.add('iridescent-machine');
+              reelElems.forEach(reel => reel.classList.add('iridescent-reel'));
+              confetti({
+                particleCount: 100,
+                spread: 70,
+                origin: { y: 0.6 }
+              });
+            } else {
+              result.winningIndexes.forEach(i => {
+                reelElems[i].classList.add('iridescent-reel');
+              });
+            }
+          }
+
+          animateBalanceIncrease(balance, result.payout);
+        }
+      }, 1000 + index * 300);
+    });
+  }
+
+  updateBalanceDisplay();
+</script>
+
+</body>
+</html>
