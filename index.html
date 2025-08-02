@@ -18,10 +18,11 @@
       color: var(--tg-theme-text-color);
       margin: 0;
       user-select: none;
+      overflow: hidden; /* Hide sidebars */
     }
 
     .slot-machine {
-      margin: 20px auto;
+      /* margin: 20px auto; */
       width: 380px;
       min-width: 360px;
       padding: 20px;
@@ -30,6 +31,9 @@
       background-color: #222;
       transition: border 0.3s;
       max-width: 99vw;
+      color: whitesmoke;
+      margin-left: auto;
+      margin-right: auto;
     }
 
     .iridescent-machine {
@@ -119,6 +123,7 @@
     }
 
     button {
+        flex: 1;
       padding: 20px 50px;
       font-size: 20px;
       background-color: #28a745;
@@ -268,12 +273,12 @@
   </div>
 
   <div class="buttons">
-    <button id="spinBtn" onclick="spin()">Spin <br><span style="font-size: 16px;">(10 credits)</span></button>
-    <button id="cashoutBtn" onclick="cashOut()" disabled>Cash Out</button>
+    <button id="spinBtn" onclick="spin()">Spin <br><span style="font-size: 16px;">10 credits</span></button>
+    <button id="cashoutBtn" onclick="cashOut()" disabled>Cash <br> Out</button>
   </div>
 </div>
 
-<span style="color: red;">Screen size: X, y</span>
+<span id="viewport-info"></span>
 
 <!-- Modal -->
 <div class="modal-overlay" id="modalOverlay" role="dialog" aria-modal="true" aria-labelledby="modalTitle" tabindex="-1">
@@ -293,9 +298,13 @@
         }
     });
 
-    window.addEventListener('resize', () => {
-        alert(`Viewport size: ${window.innerWidth} x ${window.innerHeight}`);
-    });
+    function updateViewportInfo() {
+        document.getElementById('viewport-info').textContent =
+        `Viewport size: ${window.innerWidth} x ${window.innerHeight}`;
+    }
+
+    window.addEventListener('resize', updateViewportInfo);
+    document.addEventListener('DOMContentLoaded', updateViewportInfo)
 
   const symbols = ['🍒', '🔔', '🍉', '💎'];
   let balance = 100;
