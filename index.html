@@ -9,12 +9,13 @@
       width: 100vw;
       height: 100vh;
       display: flex;
+      flex-direction: column;
       justify-content: center;
       align-items: center;
       font-family: Arial, sans-serif;
       text-align: center;
       background: var(--tg-theme-bg-color);
-      color: white;
+      color: var(--tg-theme-text-color);
       margin: 0;
       user-select: none;
     }
@@ -272,6 +273,8 @@
   </div>
 </div>
 
+<span style="color: red;">Screen size: X, y</span>
+
 <!-- Modal -->
 <div class="modal-overlay" id="modalOverlay" role="dialog" aria-modal="true" aria-labelledby="modalTitle" tabindex="-1">
   <div class="modal">
@@ -289,7 +292,11 @@
             console.log("TelegramWebviewProxy not available. Running outside Telegram.");
         }
     });
-    
+
+    window.addEventListener('resize', () => {
+        alert(`Viewport size: ${window.innerWidth} x ${window.innerHeight}`);
+    });
+
   const symbols = ['🍒', '🔔', '🍉', '💎'];
   let balance = 100;
   let spinning = false;
