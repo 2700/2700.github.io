@@ -6,12 +6,16 @@
   <title>Slot Machine</title>
   <style>
     body {
+      width: 100vw;
+      height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
       font-family: Arial, sans-serif;
       text-align: center;
-      background: #111;
+      background: var(--tg-theme-bg-color);
       color: white;
       margin: 0;
-      /* background-colsor: red; */
       user-select: none;
     }
 
@@ -93,7 +97,7 @@
     }
 
     .reel.iridescent-reel {
-      animation: iridescent-border 1.5s linear infinite;
+      animation: iridescent-border 1s linear infinite;
     }
 
     @keyframes iridescent-border {
@@ -277,10 +281,14 @@
 </div>
 
 <script>
-// Switch to fullscreen
-document.addEventListener('DOMContentLoaded', function () {
-    window.TelegramWebviewProxy.postEvent('web_app_request_fullscreen', null)
-});
+    // Switch to fullscreen
+    document.addEventListener('DOMContentLoaded', function () {
+        if (window.TelegramWebviewProxy && typeof window.TelegramWebviewProxy.postEvent === 'function') {
+            window.TelegramWebviewProxy.postEvent('web_app_request_fullscreen', null)
+        } else {
+            console.log("TelegramWebviewProxy not available. Running outside Telegram.");
+        }
+    });
     
   const symbols = ['🍒', '🔔', '🍉', '💎'];
   let balance = 100;
@@ -314,7 +322,7 @@ document.addEventListener('DOMContentLoaded', function () {
   function resetHighlight() {
     const rows = document.querySelectorAll('tr.highlight');
     rows.forEach(row => row.classList.remove('highlight'));
-}
+  }
 
   function calculatePayout([r1, r2, r3]) {
     if (r1 === '💎' && r2 === '💎' && r3 === '💎')
