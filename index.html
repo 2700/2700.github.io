@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Slot Machine</title>
   <style>
     body {
@@ -12,6 +12,7 @@
       color: #fff;
       margin: 0;
       padding: 20px;
+      user-select: none;
     }
 
     .slot-machine {
@@ -29,23 +30,65 @@
       animation: iridescent-border 1.5s linear infinite;
     }
 
+    .payoff-board {
+      text-align: left;
+      font-size: 18px;
+      background: #1c1c1c;
+      padding: 10px 15px;
+      border-radius: 10px;
+      border: 2px solid #333;
+      margin-top: 30px;
+      max-width: 350px;
+      margin-left: auto;
+      margin-right: auto;
+    }
+
+    .payoff-board h3 {
+      color: #ffcc00;
+      margin: 0 0 8px 0;
+      font-size: 18px;
+      text-align: center;
+    }
+
+    .payoff-board table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+
+    .payoff-board td {
+      padding: 2px;
+      vertical-align: middle;
+    }
+
+    .payoff-board .symbols {
+      width: 70%;
+    }
+
+    .payoff-board .amount {
+      text-align: right;
+      width: 30%;
+      color: gray;
+    }
+
     .reels {
       display: flex;
-      justify-content: space-around;
-      font-size: 50px;
-      margin-top: 40px;
+      justify-content: space-between;
+      gap: 8px;
+      margin-bottom: 30px;
+      font-size: 80px;
     }
 
     .reel {
-      width: 80px;
-      height: 80px;
+      width: 110px;
+      height: 110px;
       border: 4px solid #555;
       background: #1c1c1c;
-      border-radius: 12px;
+      border-radius: 14px;
       display: flex;
       align-items: center;
       justify-content: center;
-      transition: border 0.3s;
+      overflow: hidden;
+      user-select: none;
     }
 
     .reel.iridescent-reel {
@@ -62,21 +105,33 @@
       100% { border-color: violet; }
     }
 
+    .buttons {
+      display: flex;
+      justify-content: space-between;
+      gap: 20px;
+      margin-top: 40px;
+      flex-wrap: wrap;
+    }
+
     button {
-      padding: 16px 28px;
+      padding: 20px 48px;
       font-size: 20px;
       background-color: #28a745;
       border: none;
       color: white;
       border-radius: 10px;
       cursor: pointer;
-      margin: 40px 0;
-      transition: background-color 0.1s, transform 0.1s;
+      transition: background-color 0.15s ease, transform 0.15s ease;
       touch-action: manipulation;
-      min-width: 200px;
+      min-width: 140px;
+      user-select: none;
     }
 
-    button:active {
+    button:hover:not(:disabled) {
+      background-color: #4dca70;
+    }
+
+    button:active:not(:disabled) {
       background-color: #1e7c34;
       transform: scale(0.98);
     }
@@ -88,7 +143,7 @@
 
     .balance {
       font-size: 20px;
-      margin: 10px 0;
+      margin: 20px 0;
     }
 
     .balance-numbers {
@@ -106,40 +161,61 @@
       100% { transform: scale(1); }
     }
 
-    .payoff-board {
-      text-align: left;
-      font-size: 16px;
-      background: #1c1c1c;
-      padding: 10px 15px;
-      border-radius: 10px;
-      border: 2px solid #333;
-      margin-top: 15px;
+    /* Modal styles */
+    .modal-overlay {
+      position: fixed;
+      top: 0; left: 0;
+      width: 100vw;
+      height: 100vh;
+      background: rgba(0,0,0,0.7);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.3s ease;
+      z-index: 1000;
     }
 
-    .payoff-board h3 {
+    .modal-overlay.active {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    .modal {
+      background: #222;
+      padding: 30px 40px;
+      border-radius: 16px;
+      border: 3px solid #ffcc00;
+      max-width: 320px;
       color: #ffcc00;
-      margin: 0 0 8px 0;
+      font-size: 22px;
+      text-align: center;
+      box-shadow: 0 0 20px #ffcc00aa;
+      position: relative;
+      animation: modal-pop 0.35s ease forwards;
+    }
+
+    @keyframes modal-pop {
+      0% { opacity: 0; transform: scale(0.7); }
+      100% { opacity: 1; transform: scale(1); }
+    }
+
+    .modal button {
+      margin-top: 20px;
+      background: #ffcc00;
+      border: none;
+      color: #222;
+      font-weight: bold;
+      padding: 10px 24px;
       font-size: 18px;
+      border-radius: 10px;
+      cursor: pointer;
+      transition: background-color 0.15s ease;
     }
 
-    .payoff-board table {
-      width: 100%;
-      border-collapse: collapse;
-    }
-
-    .payoff-board td {
-      padding: 4px;
-      vertical-align: middle;
-    }
-
-    .payoff-board .symbols {
-      width: 70%;
-    }
-
-    .payoff-board .amount {
-      text-align: right;
-      width: 30%;
-      color: gray;
+    .modal button:hover {
+      background: #e6b800;
     }
   </style>
 </head>
@@ -147,28 +223,42 @@
 
 <div class="slot-machine" id="slotBox">
   <h1>👑 Slotty King 👑</h1>
+
+  <div class="payoff-board">
+    <h3>Payoff Board</h3>
+    <table>
+      <tr><td class="symbols">💎 💎 💎</td><td class="amount">70</td></tr>
+      <tr><td class="symbols">🍉 🍉 🍉</td><td class="amount">50</td></tr>
+      <tr><td class="symbols">🍒 🍒 🍒</td><td class="amount">40</td></tr>
+      <tr><td class="symbols">🔔 🔔 🔔</td><td class="amount">40</td></tr>
+      <tr><td class="symbols">🍉 🍉</td><td class="amount">40</td></tr>
+      <tr><td class="symbols">🍒 🍒</td><td class="amount">20</td></tr>
+      <tr><td class="symbols">🔔 🔔</td><td class="amount">20</td></tr>
+      <tr><td class="symbols">🍒</td><td class="amount">10</td></tr>
+    </table>
+  </div>
+
   <div class="balance">
     Balance: <span class="balance-numbers" id="balanceNumbers">100</span> credits
   </div>
+
   <div class="reels">
     <div class="reel" id="reel1">🍒</div>
     <div class="reel" id="reel2">🔔</div>
     <div class="reel" id="reel3">🍉</div>
   </div>
-  <button id="spinBtn" onclick="spin()">Spin (10 credits)</button>
 
-  <div class="payoff-board">
-    <h3>Payoff Board</h3>
-    <table>
-      <tr><td class="symbols">🍒</td><td class="amount">10</td></tr>
-      <tr><td class="symbols">🍒 🍒</td><td class="amount">20</td></tr>
-      <tr><td class="symbols">🍒 🍒 🍒</td><td class="amount">40</td></tr>
-      <tr><td class="symbols">🔔 🔔</td><td class="amount">20</td></tr>
-      <tr><td class="symbols">🔔 🔔 🔔</td><td class="amount">40</td></tr>
-      <tr><td class="symbols">🍉 🍉</td><td class="amount">40</td></tr>
-      <tr><td class="symbols">🍉 🍉 🍉</td><td class="amount">50</td></tr>
-      <tr><td class="symbols">💎 💎 💎</td><td class="amount">70</td></tr>
-    </table>
+  <div class="buttons">
+    <button id="spinBtn" onclick="spin()">Spin <br><span style="font-size: 16px;">(10 credits)</span></button>
+    <button id="cashoutBtn" onclick="cashOut()" disabled>Cash Out</button>
+  </div>
+</div>
+
+<!-- Modal -->
+<div class="modal-overlay" id="modalOverlay" role="dialog" aria-modal="true" aria-labelledby="modalTitle" tabindex="-1">
+  <div class="modal">
+    <div id="modalTitle"></div>
+    <button id="modalButton">OK</button>
   </div>
 </div>
 
@@ -177,15 +267,17 @@
 <script>
   const symbols = ['🍒', '🔔', '🍉', '💎'];
   let balance = 100;
+  let spinning = false;
 
   const balanceNumbers = document.getElementById('balanceNumbers');
   const spinBtn = document.getElementById('spinBtn');
+  const cashoutBtn = document.getElementById('cashoutBtn');
   const slotBox = document.getElementById('slotBox');
-  const reelElems = [
-    document.getElementById('reel1'),
-    document.getElementById('reel2'),
-    document.getElementById('reel3')
-  ];
+  const reelElems = [document.getElementById('reel1'), document.getElementById('reel2'), document.getElementById('reel3')];
+
+  const modalOverlay = document.getElementById('modalOverlay');
+  const modalTitle = document.getElementById('modalTitle');
+  const modalButton = document.getElementById('modalButton');
 
   function getRandomSymbol() {
     return symbols[Math.floor(Math.random() * symbols.length)];
@@ -193,7 +285,8 @@
 
   function updateBalanceDisplay() {
     balanceNumbers.textContent = balance;
-    spinBtn.disabled = balance < 10;
+    spinBtn.disabled = balance < 10 || spinning;
+    cashoutBtn.disabled = balance <= 100 || spinning;
   }
 
   function resetIridescence() {
@@ -226,9 +319,10 @@
 
   function animateBalanceIncrease(currentBalance, payout, callback) {
     if (payout <= 0) {
-      if (callback) callback();
+      callback?.();
       return;
     }
+
     let displayedBalance = currentBalance;
     const increments = Math.floor(payout / 10);
     let count = 0;
@@ -238,19 +332,19 @@
       displayedBalance += 10;
       balanceNumbers.textContent = displayedBalance;
       pulseBalanceNumber();
-
       if (count >= increments) {
         clearInterval(interval);
         balance = displayedBalance;
         updateBalanceDisplay();
-        if (callback) callback();
+        callback?.();
       }
     }, 200);
   }
 
   function spin() {
-    if (balance < 10) return;
+    if (balance < 10 || spinning) return;
 
+    spinning = true;
     balance -= 10;
     updateBalanceDisplay();
     resetIridescence();
@@ -273,24 +367,49 @@
 
           if (result.payout > 0) {
             if (result.jackpot) {
+              navigator.vibrate?.([100, 100, 100]); // strong
               slotBox.classList.add('iridescent-machine');
               reelElems.forEach(reel => reel.classList.add('iridescent-reel'));
-              confetti({
-                particleCount: 100,
-                spread: 70,
-                origin: { y: 0.6 }
-              });
+              confetti({ particleCount: 100, spread: 70, origin: { y: 0.6 } });
             } else {
-              result.winningIndexes.forEach(i => {
-                reelElems[i].classList.add('iridescent-reel');
-              });
+              navigator.vibrate?.(100); // short
+              result.winningIndexes.forEach(i => reelElems[i].classList.add('iridescent-reel'));
             }
           }
 
-          animateBalanceIncrease(balance, result.payout);
+          animateBalanceIncrease(balance, result.payout, () => {
+            spinning = false;
+            updateBalanceDisplay();
+            if (balance === 0) {
+              showModal(`You're out of credits! Try again later or refresh the page.`, true);
+            }
+          });
         }
       }, 1000 + index * 300);
     });
+  }
+
+  function cashOut() {
+    if (balance > 100 && !spinning) {
+      showModal(`You cashed out with ${balance} credits! 🎉`);
+      balance = 100;
+      updateBalanceDisplay();
+      resetIridescence();
+    }
+  }
+
+  function showModal(message, isZeroBalance = false) {
+    modalTitle.textContent = message;
+    modalOverlay.classList.add('active');
+    modalButton.textContent = isZeroBalance ? "Restart Game" : "OK";
+    modalButton.onclick = () => {
+      modalOverlay.classList.remove('active');
+      if (isZeroBalance) {
+        balance = 100;
+        updateBalanceDisplay();
+        resetIridescence();
+      }
+    };
   }
 
   updateBalanceDisplay();
